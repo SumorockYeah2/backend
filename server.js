@@ -26,7 +26,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // สร้างโฟลเดอร์ uploads ถ้ายังไม่มี
-const https = require('https');
+// const https = require('https');
 const fs = require('fs');
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
@@ -48,7 +48,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/uploads', (req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', 'https://localhost:3000');
+    res.setHeader('Access-Control-Allow-Origin', 'https://time-attendance-chi.vercel.app');
     next();
 }, express.static(path.join(__dirname, 'uploads')));
 
