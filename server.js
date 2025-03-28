@@ -34,8 +34,8 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 const sslOptions = {
-    key: fs.readFileSync('../server.key'), // Path ไปยังไฟล์ Private Key
-    cert: fs.readFileSync('../server.cert') // Path ไปยังไฟล์ Certificate
+    key: fs.readFileSync('./server.key'), // Path ไปยังไฟล์ Private Key
+    cert: fs.readFileSync('./server.cert') // Path ไปยังไฟล์ Certificate
 };
 
 // ตั้งค่า CORS
