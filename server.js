@@ -1224,7 +1224,7 @@ app.put('/api/settings-update', (req, res) => {
     }
 
     const query = `UPDATE settings SET gps_radius = ?, location = ? WHERE jobID = ?`;
-    db.query(query, [gps_radius, location, jobID], (err, result) => {
+    db.query(query, [gps_radius, JSON.stringify(location), jobID], (err, result) => {
         if (err) {
             console.error('Error updating GPS radius:', err.stack);
             res.status(500).send('Error updating GPS radius');
