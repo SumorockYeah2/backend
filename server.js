@@ -1201,37 +1201,37 @@ app.get('/api/settings-fetch', (req, res) => {
     const { jobID } = req.query;
     console.log('Received jobID:', jobID);
 
-    const query = `SELECT gps_radius FROM settings WHERE jobID = ?`;
+    const query = `SELECT gps_radius, location FROM settings WHERE jobID = ?`;
     db.query(query, [jobID], (err, results) => {
         if (err) {
-            console.error('Error fetching GPS radius:', err.stack);
-            res.status(500).send('Error fetching GPS radius');
+            console.error('Error fetching GPS radius & location:', err.stack);
+            res.status(500).send('Error fetching GPS radius & location');
         } else if (results.length === 0) {
             res.status(404).send('Job ID not found');
         } else {
-            res.status(200).json({ gps_radius: results[0].gps_radius });
+            res.status(200).json({ gps_radius: results[0].gps_radius, location: results[0].location });
         }
     });
 });
 
 // API สำหรับอัปเดตรัศมี GPS
 app.put('/api/settings-update', (req, res) => {
-    const { jobID, gps_radius } = req.body;
+    const { jobID, gps_radius, location } = req.body;
     console.log('Received data:', req.body);
 
-    if (!jobID || !gps_radius) {
+    if (!jobID || !gps_radius || !location) {
         return res.status(400).send('Missing required fields');
     }
 
-    const query = `UPDATE settings SET gps_radius = ? WHERE jobID = ?`;
-    db.query(query, [gps_radius, jobID], (err, result) => {
+    const query = `UPDATE settings SET gps_radius = ?, location = ? WHERE jobID = ?`;
+    db.query(query, [gps_radius, location, jobID], (err, result) => {
         if (err) {
             console.error('Error updating GPS radius:', err.stack);
             res.status(500).send('Error updating GPS radius');
         } else if (result.affectedRows === 0) {
             res.status(404).send('Job ID not found');
         } else {
-            res.status(200).send('GPS radius updated successfully');
+            res.status(200).send('GPS radius location updated successfully');
         }
     });
 });
