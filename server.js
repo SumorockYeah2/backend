@@ -495,7 +495,7 @@ app.put('/empdata-update', (req, res) => {
 
 app.put('/attendance-update', (req, res) => {
     console.log('Received data:', req.body);
-    const { idattendance, jobID, jobType, description, in_time, out_time, location, image_url } = req.body;
+    const { idattendance, jobID, jobType, description, in_time, out_time, location, image_url, place_name } = req.body;
 
     if (!idattendance) {
         return res.status(400).send('idemployees is required');
@@ -503,11 +503,14 @@ app.put('/attendance-update', (req, res) => {
 
     const query = `
         UPDATE attendance
-        SET jobID = ?, jobType = ?, description = ?, in_time = ?, out_time = ?, location = ?, image_url = ?
+        SET jobID = ?, jobType = ?, description = ?, in_time = ?, out_time = ?, location = ?, image_url = ?, place_name = ?
         WHERE idattendance = ?
     `;
 
-    const values = [jobID, jobType, description, in_time, out_time, location, image_url, idattendance];
+    const values = [jobID, jobType, description, in_time, out_time, location, image_url, place_name, idattendance];
+
+    console.log('Query:', query);
+    console.log('Values:', values);
 
     db.query(query, values, (err, result) => {
         if (err) {
