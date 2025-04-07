@@ -105,51 +105,27 @@ app.post('/checkin', (req, res) => {
     const { idemployees, userLocation, place_name, selectedOption, textInput, checkInDateTime, checkOutDateTime, uploadedFilePath } = req.body;
 
     if (selectedOption === 'เข้างานออฟฟิศ') {
-        const jobID = `OF01`; // ใช้ jobID แบบคงที่สำหรับ "เข้างานออฟฟิศ"
-
-        // ตรวจสอบว่ามีการเช็คอินซ้ำหรือไม่
-        const checkDuplicateQuery = `
-            SELECT COUNT(*) AS count
-            FROM attendance
-            WHERE idemployees = ? AND jobID = ? AND isCheckedIn = 1
+        // บันทึกข้อมูล "เข้างานออฟฟิศ" ลงในตาราง attendance โดยตรง
+        const query = `
+            INSERT INTO attendance (idemployees, jobID, location, place_name, jobType, description, in_time, out_time, image_url, isCheckedIn)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
+        const jobID = `OF${idemployees}`; // ใช้ jobID แบบคงที่สำหรับ "เข้างานออฟฟิศ"
+        const values = [idemployees, jobID, JSON.stringify(userLocation), place_name, selectedOption, textInput, checkInDateTime, checkOutDateTime, uploadedFilePath, 1];
 
-        db.query(checkDuplicateQuery, [idemployees, jobID], (err, result) => {
+        db.query(query, values, (err, result) => {
             if (err) {
-                console.error('Error checking duplicate check-in:', err.stack);
-                res.status(500).send('Error checking duplicate check-in');
+                console.error('Error inserting check-in data:', err.stack);
+                res.status(500).send('Error inserting check-in data');
                 return;
+            } else {
+                res.status(200).send('Check-in data inserted successfully');
             }
-
-            let newPlaceName = place_name;
-            const duplicateCount = result[0].count;
-
-            // ถ้ามีการเช็คอินซ้ำ ให้เพิ่มตัวเลขต่อท้ายชื่อสถานที่
-            if (duplicateCount > 0) {
-                newPlaceName = `${place_name} (${duplicateCount + 1})`;
-            }
-
-            // บันทึกข้อมูล "เข้างานออฟฟิศ" ลงในตาราง attendance
-            const query = `
-                INSERT INTO attendance (idemployees, jobID, location, place_name, jobType, description, in_time, out_time, image_url, isCheckedIn)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `;
-            const values = [idemployees, jobID, JSON.stringify(userLocation), newPlaceName, selectedOption, textInput, checkInDateTime, checkOutDateTime, uploadedFilePath, 1];
-
-            db.query(query, values, (err, result) => {
-                if (err) {
-                    console.error('Error inserting check-in data:', err.stack);
-                    res.status(500).send('Error inserting check-in data');
-                    return;
-                } else {
-                    res.status(200).send('Check-in data inserted successfully');
-                }
-            });
         });
     } else {
         // กรณีงานอื่น ๆ (เช่น งานนอกสถานที่)
         const checkJobQuery = `
-            SELECT jobID FROM job_assignments WHERE jobname = ? AND idemployees = ? AND isCheckedOut = 0
+            SELECT jobID FROM job_assignments WHERE jobname = ? AND idemployees = ?
         `;
 
         db.query(checkJobQuery, [selectedOption, idemployees], (err, jobResult) => {
@@ -160,49 +136,26 @@ app.post('/checkin', (req, res) => {
             }
 
             if (jobResult.length === 0) {
-                res.status(404).send('Job not found or already checked out');
+                res.status(404).send('Job not found');
                 return;
             }
 
             const jobID = jobResult[0].jobID;
 
-            // ตรวจสอบว่ามีการเช็คอินซ้ำหรือไม่
-            const checkDuplicateQuery = `
-                SELECT COUNT(*) AS count
-                FROM attendance
-                WHERE idemployees = ? AND jobID = ? AND isCheckedIn = 1
+            const query = `
+                INSERT INTO attendance (idemployees, jobID, location, place_name, jobType, description, in_time, out_time, image_url, isCheckedIn)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
+            const values = [idemployees, jobID, JSON.stringify(userLocation), place_name, selectedOption, textInput, checkInDateTime, checkOutDateTime, uploadedFilePath, 1];
 
-            db.query(checkDuplicateQuery, [idemployees, jobID], (err, result) => {
+            db.query(query, values, (err, result) => {
                 if (err) {
-                    console.error('Error checking duplicate check-in:', err.stack);
-                    res.status(500).send('Error checking duplicate check-in');
+                    console.error('Error inserting check-in data:', err.stack);
+                    res.status(500).send('Error inserting check-in data');
                     return;
+                } else {
+                    res.status(200).send('Check-in data inserted successfully');
                 }
-
-                let newPlaceName = place_name;
-                const duplicateCount = result[0].count;
-
-                // ถ้ามีการเช็คอินซ้ำ ให้เพิ่มตัวเลขต่อท้ายชื่อสถานที่
-                if (duplicateCount > 0) {
-                    newPlaceName = `${place_name} (${duplicateCount + 1})`;
-                }
-
-                const query = `
-                    INSERT INTO attendance (idemployees, jobID, location, place_name, jobType, description, in_time, out_time, image_url, isCheckedIn)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                `;
-                const values = [idemployees, jobID, JSON.stringify(userLocation), newPlaceName, selectedOption, textInput, checkInDateTime, checkOutDateTime, uploadedFilePath, 1];
-
-                db.query(query, values, (err, result) => {
-                    if (err) {
-                        console.error('Error inserting check-in data:', err.stack);
-                        res.status(500).send('Error inserting check-in data');
-                        return;
-                    } else {
-                        res.status(200).send('Check-in data inserted successfully');
-                    }
-                });
             });
         });
     }
