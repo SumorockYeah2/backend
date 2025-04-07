@@ -124,11 +124,13 @@ app.post('/checkin', (req, res) => {
         });
     } else {
         // กรณีงานอื่น ๆ (เช่น งานนอกสถานที่)
+        const baseJobName = selectedOption.replace(/\s\(\d+\)$/, '');
+
         const checkJobQuery = `
             SELECT jobID FROM job_assignments WHERE jobname = ? AND idemployees = ?
         `;
 
-        db.query(checkJobQuery, [selectedOption, idemployees], (err, jobResult) => {
+        db.query(checkJobQuery, [baseJobName, idemployees], (err, jobResult) => {
             if (err) {
                 console.error('Error checking job:', err.stack);
                 res.status(500).send('Error checking job');
