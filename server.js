@@ -166,12 +166,12 @@ app.post('/checkin', (req, res) => {
 app.post('/checkout', (req, res) => {
     console.log('Request body:', req.body);
 
-    const { jobID, checkOutDateTime } = req.body;
+    const { jobID, jobname, checkOutDateTime } = req.body;
 
     const query = `
         UPDATE attendance 
         SET out_time = ?, isCheckedIn = 0
-        WHERE jobID = ? 
+        WHERE jobID = ? AND jobType = ?
         AND isCheckedIn = 1
     `;
 
@@ -182,7 +182,7 @@ app.post('/checkout', (req, res) => {
         AND jobname NOT IN ('เข้างานออฟฟิศ', 'เวลาพิเศษ')
     `
 
-    const values = [checkOutDateTime, jobID];
+    const values = [checkOutDateTime, jobID, jobname];
 
     db.query(query, values, (err, result) => {
         if (err) {
