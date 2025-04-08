@@ -14,6 +14,8 @@ const crypto = require('crypto');
 const multer = require('multer');
 const path = require('path');
 
+const nodemailer = require('nodemailer');
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/'); // โฟลเดอร์สำหรับจัดเก็บไฟล์
@@ -229,6 +231,41 @@ app.post('/request-send', (req, res) => {
             return;
         } else {
             res.status(200).send('Request data inserted successfully');
+
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: 'sumorockyeah2@gmail.com',
+                    pass: 'yrjsxaiqcrelpbba'
+                }
+            });
+
+            const mailOptions = {
+                from: 'sumorockyeah2@gmail.com',
+                to: 'sumorockyeah@gmail.com',
+                subject: 'แจ้งเตือนคำร้องลาจากพนักงาน',
+                html: `
+                    <p>คำร้องลาจากพนักงาน:</p>
+                    <ul>
+                        <li>ประเภทการลา: ${leaveType}</li>
+                        <li>วันที่เริ่มต้น: ${leaveStartDate} เวลา: ${leaveStartTime}</li>
+                        <li>วันที่สิ้นสุด: ${leaveEndDate} เวลา: ${leaveEndTime}</li>
+                        <li>เหตุผล: ${leaveDescription}</li>
+                        <li>สถานที่: ${OffsitePlace || 'ไม่ระบุ'}</li>
+                    </ul>
+                    <p>สถานะ: ${leaveStatus}</p>
+                `,
+            };
+
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.error('Error sending email:', error);
+                    res.status(500).send('Request saved, but failed to send email');
+                } else {
+                    console.log('Email sent:', info.response);
+                    res.status(200).send('Request data inserted and email sent successfully');
+                }
+            });
         }
     });
 });
