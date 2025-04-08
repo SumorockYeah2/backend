@@ -466,6 +466,31 @@ app.get('/get-employee-name/:idemployees', (req, res) => {
     });
 });
 
+async function fetchHolidays() {
+    const API_KEY = 'AIzaSyDox1fRNODZVo8U3Pv9LU41l-0nzmK-E2c';
+    const CALENDAR_ID = 'th.th#holiday@group.v.calendar.google.com';
+    const BASE_URL = `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events`;
+
+    try {
+        const response = await fetch(`${BASE_URL}?key=${API_KEY}&singleEvents=true&orderBy=startTime`);
+        const data = await response.json();
+        return data.items.filter(holiday => holiday.description === "วันหยุดนักขัตฤกษ์");
+    } catch (error) {
+        console.error('Error fetching holidays:', error);
+        return [];
+    }
+}
+
+function isWorkingDay(date, holidays) {
+    const day = date.getDay();
+    const isWeekend = day === 0 || day === 6;
+    const isHoliday = holidays.some(holiday => {
+        const holidayDate = new Date(holiday.start.date || holiday.start.dateTime);
+        return holidayDate.toDateString() === date.toDateString();
+    });
+    return !isWeekend && !isHoliday;
+}
+
 function calculateLeaveHours(startDateTime, endDateTime) {
     let totalHours = 0;
 
@@ -481,6 +506,13 @@ function calculateLeaveHours(startDateTime, endDateTime) {
 
         const lunchEnd = new Date(startDateTime);
         lunchEnd.setHours(13, 0, 0, 0);
+
+        //ข้ามเสาร์-อาทิตย์และวันหยุด กรณีลากิจและลาป่วย
+        if (leaveType !== 'ลาพักร้อน' && !isWorkingDay(startDateTime, holidays)) {
+            startDateTime.setDate(startDateTime.getDate() + 1);
+            startDateTime.setHours(8, 30, 0, 0);
+            continue;
+        }
 
         // นอกเวลางาน - ข้าม
         if (startDateTime >= workEnd) {
