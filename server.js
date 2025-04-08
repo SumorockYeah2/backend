@@ -216,6 +216,11 @@ app.post('/request-send', (req, res) => {
 
     const { idemployees, leaveType, leaveStartDate, leaveStartTime, leaveEndDate, leaveEndTime, leaveDescription, leaveLocation, OffsitePlace, leaveStatus } = req.body;
 
+    console.log('Received leaveStartDate:', leaveStartDate);
+    console.log('Received leaveStartTime:', leaveStartTime);
+    console.log('Received leaveEndDate:', leaveEndDate);
+    console.log('Received leaveEndTime:', leaveEndTime);
+    
     if (!leaveType || !leaveStartDate || !leaveStartTime || !leaveEndDate || !leaveEndTime || !leaveDescription) {
         console.error('Missing required fields');
         return res.status(400).send('Missing required fields');
