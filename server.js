@@ -465,10 +465,10 @@ app.put('/request-update/:id', (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const query = `UPDATE requests SET status = ? WHERE idrequests = ?`;
-    const values = [status, id];
+    const updateQuery = `UPDATE requests SET status = ? WHERE idrequests = ?`;
+    const updateValues = [status, id];
 
-    db.query(query, values, (err, result) => {
+    db.query(updateQuery, updateValues, (err, result) => {
         if (err) {
             console.error('Error updating request data:', err.stack);
             res.status(500).send('Error updating request data');
@@ -477,37 +477,48 @@ app.put('/request-update/:id', (req, res) => {
             console.log('Request data updated successfully:', result);
             res.status(200).send('Request data updated successfully');
 
-            const transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: 'sumorockyeah2@gmail.com',
-                    pass: 'yrjsxaiqcrelpbba'
-                }
-            });
-
-            const mailOptions = {
-                from: 'sumorockyeah2@gmail.com',
-                to: 'sumorockyeah@gmail.com',
-                subject: `แจ้งเตือน: คำร้อง${leaveStatus === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติ' : 'ถูกปฏิเสธ'}`,
-                html: `
-                    <p>คำร้องลาของคุณ${leaveStatus === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติจากหัวหน้าแล้ว' : 'ไม่ผ่านการอนุมัติจากหัวหน้า'}</p>
-                    <ul>
-                        <li>ประเภทการลา: ${leaveType}</li>
-                        <li>วันที่เริ่มต้น: ${leaveStartDate} เวลา: ${leaveStartTime}</li>
-                        <li>วันที่สิ้นสุด: ${leaveEndDate} เวลา: ${leaveEndTime}</li>
-                        <li>เหตุผล: ${leaveDescription}</li>
-                        <li>สถานะ: ${leaveStatus}</li>
-                    </ul>
-                `
-            };
-
-            transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    console.error('Error sending email:', error);
-                    res.status(500).send('Request updated, but failed to send email');
+            const selectQuery = `SELECT * FROM requests WHERE idrequests = ?`;
+            db.query(selectQuery, [id], (err, requestResult) => {
+                if (err) {
+                    console.error('Error fetching request data:', err.stack);
+                    res.status(500).send('Error fetching request data');
+                    return;
                 } else {
-                    console.log('Email sent:', info.response);
-                    res.status(200).send('Request updated and email sent successfully');
+                    const requestData = requestResult[0];
+
+                    const transporter = nodemailer.createTransport({
+                        service: 'gmail',
+                        auth: {
+                            user: 'sumorockyeah2@gmail.com',
+                            pass: 'yrjsxaiqcrelpbba'
+                        }
+                    });
+        
+                    const mailOptions = {
+                        from: 'sumorockyeah2@gmail.com',
+                        to: 'sumorockyeah@gmail.com',
+                        subject: `แจ้งเตือน: คำร้อง${leaveStatus === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติ' : 'ถูกปฏิเสธ'}`,
+                        html: `
+                            <p>คำร้องลาของคุณ${leaveStatus === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติจากหัวหน้าแล้ว' : 'ไม่ผ่านการอนุมัติจากหัวหน้า'}</p>
+                            <ul>
+                                <li>ประเภทการลา: ${requestData.leaveType}</li>
+                                <li>วันที่เริ่มต้น: ${requestData.start_date} เวลา: ${requestData.start_time}</li>
+                                <li>วันที่สิ้นสุด: ${requestData.end_date} เวลา: ${requestData.end_time}</li>
+                                <li>เหตุผล: ${requestData.reason}</li>
+                                <li>สถานะ: ${status}</li>
+                            </ul>
+                        `
+                    };
+        
+                    transporter.sendMail(mailOptions, (error, info) => {
+                        if (error) {
+                            console.error('Error sending email:', error);
+                            res.status(500).send('Request updated, but failed to send email');
+                        } else {
+                            console.log('Email sent:', info.response);
+                            res.status(200).send('Request updated and email sent successfully');
+                        }
+                    });
                 }
             });
         }
