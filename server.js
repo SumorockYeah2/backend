@@ -563,6 +563,8 @@ app.put('/request-update/:id', (req, res) => {
                         `;
 
                         db.query(checkLeaveBalanceQuery, [requestData.idemployees], (err, balanceResult) => {
+                            console.log('Check leave balance query:', checkLeaveBalanceQuery);
+                            console.log('Query parameters:', [requestData.idemployees]);
                             if (err) {
                                 console.error('Error fetching leave balance:', err.stack);
                                 res.status(500).send('Error fetching leave balance');
