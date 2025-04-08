@@ -562,8 +562,6 @@ app.put('/request-update/:id', (req, res) => {
                             WHERE idemployees = ?
                         `;
 
-                        console.log('Current Balance Before Update:', currentBalance);
-
                         db.query(checkLeaveBalanceQuery, [requestData.idemployees], (err, balanceResult) => {
                             console.log('Check leave balance query:', checkLeaveBalanceQuery);
                             console.log('Query parameters:', [requestData.idemployees]);
