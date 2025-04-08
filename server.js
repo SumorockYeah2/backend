@@ -1181,15 +1181,15 @@ app.put('/leave-balance-update/:idemployees', (req, res) => {
     const values = [];
 
     if (absence_hrs !== undefined) {
-        updates.push('absence_hrs = absence_hrs + ?');
+        updates.push('absence_hrs = ?');
         values.push(absence_hrs);
     }
     if (sick_hrs !== undefined) {
-        updates.push('sick_hrs = sick_hrs + ?');
+        updates.push('sick_hrs = ?');
         values.push(sick_hrs);
     }
     if (vacation_hrs !== undefined) {
-        updates.push('vacation_hrs = vacation_hrs + ?');
+        updates.push('vacation_hrs = ?');
         values.push(vacation_hrs);
     }
 
