@@ -461,6 +461,57 @@ app.get('/get-employee-name/:idemployees', (req, res) => {
     });
 });
 
+function calculateLeaveHours(startDateTime, endDateTime) {
+    let totalHours = 0;
+
+    while (startDateTime < endDateTime) {
+        const workStart = new Date(startDateTime);
+        workStart.setHours(8, 30, 0, 0);
+
+        const workEnd = new Date(startDateTime);
+        workEnd.setHours(17, 30, 0, 0);
+
+        const lunchStart = new Date(startDateTime);
+        lunchStart.setHours(12, 0, 0, 0);
+
+        const lunchEnd = new Date(startDateTime);
+        lunchEnd.setHours(13, 0, 0, 0);
+
+        // นอกเวลางาน - ข้าม
+        if (startDateTime >= workEnd) {
+            startDateTime.setDate(startDateTime.getDate() + 1);
+            startDateTime.setHours(8, 30, 0, 0);
+            continue;
+        }
+
+        // คิดช่วงเช้า
+        if (startDateTime < lunchStart) {
+            const morningEnd = Math.min(lunchStart, endDateTime);
+            totalHours += (morningEnd - startDateTime) / (1000 * 60 * 60);
+            startDateTime = new Date(morningEnd);
+        }
+
+        // ข้ามพักเที่ยง
+        if (startDateTime >= lunchStart && startDateTime < lunchEnd) {
+            startDateTime = new Date(lunchEnd);
+        }
+
+        // คิดช่วงบ่าย
+        if (startDateTime >= lunchEnd && startDateTime < workEnd) {
+            const afternoonEnd = Math.min(workEnd, endDateTime);
+            totalHours += (afternoonEnd - startDateTime) / (1000 * 60 * 60);
+            startDateTime = new Date(afternoonEnd);
+        }
+
+        if (startDateTime >= workEnd) {
+            startDateTime.setDate(startDateTime.getDate() + 1);
+            startDateTime.setHours(8, 30, 0, 0);
+        }
+    }
+
+    return totalHours;
+}
+
 app.put('/request-update/:id', (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
@@ -485,40 +536,73 @@ app.put('/request-update/:id', (req, res) => {
                     return;
                 } else {
                     const requestData = requestResult[0];
+                    const startDateTime = new Date(`${requestData.start_date}T${requestData.start_time}`);
+                    const endDateTime = new Date(`${requestData.end_date}T${requestData.end_time}`);
+                    const leaveHours = calculateLeaveHours(startDateTime, endDateTime);
 
-                    const transporter = nodemailer.createTransport({
-                        service: 'gmail',
-                        auth: {
-                            user: 'sumorockyeah2@gmail.com',
-                            pass: 'yrjsxaiqcrelpbba'
-                        }
-                    });
-        
-                    const mailOptions = {
-                        from: 'sumorockyeah2@gmail.com',
-                        to: 'sumorockyeah@gmail.com',
-                        subject: `แจ้งเตือน: คำร้อง${status === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติ' : 'ถูกปฏิเสธ'}`,
-                        html: `
-                            <p>คำร้องลาของคุณ${status === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติจากหัวหน้าแล้ว' : 'ไม่ผ่านการอนุมัติจากหัวหน้า'}</p>
-                            <ul>
-                                <li>ประเภทการลา: ${requestData.leaveType}</li>
-                                <li>วันที่เริ่มต้น: ${requestData.start_date} เวลา: ${requestData.start_time}</li>
-                                <li>วันที่สิ้นสุด: ${requestData.end_date} เวลา: ${requestData.end_time}</li>
-                                <li>เหตุผล: ${requestData.reason}</li>
-                                <li>สถานะ: ${status}</li>
-                            </ul>
-                        `
-                    };
-        
-                    transporter.sendMail(mailOptions, (error, info) => {
-                        if (error) {
-                            console.error('Error sending email:', error);
-                            res.status(500).send('Request updated, but failed to send email');
-                        } else {
-                            console.log('Email sent:', info.response);
-                            res.status(200).send('Request updated and email sent successfully');
-                        }
-                    });
+                    console.log('Calculated leave hours:', leaveHours);
+
+                    let leaveColumn;
+                    if (requestData.leaveType === 'ลากิจ') {
+                        leaveColumn = 'absence_hrs';
+                    } else if (requestData.leaveType === 'ลาป่วย') {
+                        leaveColumn = 'sick_hrs';
+                    } else if (requestData.leaveType === 'ลาพักร้อน') {
+                        leaveColumn = 'vacation_hrs';
+                    }
+
+                    if (leaveColumn) {
+                        const updateLeaveQuery = `
+                            UPDATE leave_hrs
+                            SET ${leaveColumn} = ${leaveColumn} - ?
+                            WHERE idemployees = ?
+                        `;
+                        db.query(updateLeaveQuery, [leaveHours, requestData.idemployees], (err, leaveResult) => {
+                            if (err) {
+                                console.error('Error updating leave balance:', err.stack);
+                                res.status(500).send('Error updating leave balance');
+                                return;
+                            }
+
+                            console.log('Leave balance updated successfully:', leaveResult);
+
+                            const transporter = nodemailer.createTransport({
+                                service: 'gmail',
+                                auth: {
+                                    user: 'sumorockyeah2@gmail.com',
+                                    pass: 'yrjsxaiqcrelpbba'
+                                }
+                            });
+                
+                            const mailOptions = {
+                                from: 'sumorockyeah2@gmail.com',
+                                to: 'sumorockyeah@gmail.com',
+                                subject: `แจ้งเตือน: คำร้อง${status === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติ' : 'ถูกปฏิเสธ'}`,
+                                html: `
+                                    <p>คำร้องลาของคุณ${status === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติจากหัวหน้าแล้ว' : 'ไม่ผ่านการอนุมัติจากหัวหน้า'}</p>
+                                    <ul>
+                                        <li>ประเภทการลา: ${requestData.leaveType}</li>
+                                        <li>วันที่เริ่มต้น: ${requestData.start_date} เวลา: ${requestData.start_time}</li>
+                                        <li>วันที่สิ้นสุด: ${requestData.end_date} เวลา: ${requestData.end_time}</li>
+                                        <li>เหตุผล: ${requestData.reason}</li>
+                                        <li>สถานะ: ${status}</li>
+                                    </ul>
+                                `
+                            };
+                
+                            transporter.sendMail(mailOptions, (error, info) => {
+                                if (error) {
+                                    console.error('Error sending email:', error);
+                                    res.status(500).send('Request updated, but failed to send email');
+                                } else {
+                                    console.log('Email sent:', info.response);
+                                    res.status(200).send('Request updated and email sent successfully');
+                                }
+                            });
+                        });
+                    } else {
+                        res.status(400).send('Invalid leave type!');
+                    }
                 }
             });
         }
@@ -1061,26 +1145,11 @@ app.get('/leave-balance/:idemployees', (req, res) => {
 
     const query = `
         SELECT
-            lh.absence_hrs,
-            lh.sick_hrs,
-            lh.vacation_hrs,
-            COALESCE(
-                JSON_ARRAYAGG(
-                    JSON_OBJECT(
-                        'idrequests', r.idrequests,
-                        'leaveType', r.leaveType,
-                        'start_date', r.start_date,
-                        'start_time', r.start_time,
-                        'end_date', r.end_date,
-                        'end_time', r.end_time,
-                        'status', r.status
-                    )
-                ), '[]'
-            ) AS requests
-        FROM leave_hrs lh
-        LEFT JOIN requests r ON lh.idemployees = r.idemployees
-        WHERE lh.idemployees = ?
-        GROUP BY lh.idemployees
+            absence_hrs,
+            sick_hrs,
+            vacation_hrs
+        FROM leave_hrs
+        WHERE idemployees = ?
     `;
 
     db.query(query, [idemployees], (err, results) => {
@@ -1091,16 +1160,7 @@ app.get('/leave-balance/:idemployees', (req, res) => {
         }
 
         if (results.length > 0) {
-            const leaveBalance = results[0];
-            console.log('Leave balance before parsing:', leaveBalance);
-            try {
-                leaveBalance.requests = JSON.parse(leaveBalance.requests || '[]');
-                console.log('Parsed requests:', leaveBalance.requests);
-                res.status(200).json(leaveBalance);
-            } catch (parseError) {
-                console.error('Error parsing requests JSON:', parseError);
-                res.status(500).send('Error parsing requests JSON');
-            }
+            res.status(200).json(results[0]);
         } else {
             res.status(404).send('Leave balance not found');
         }
@@ -1324,6 +1384,7 @@ app.put('/api/settings-update', (req, res) => {
 });
 
 const { Canvas, Image, ImageData } = require('canvas');
+const { request } = require('http');
 faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
 // Endpoint สำหรับตรวจสอบใบหน้า
 app.post('/auth/facial-recognition', upload.single('image'), async (req, res) => {
