@@ -556,55 +556,70 @@ app.put('/request-update/:id', (req, res) => {
                     }
 
                     if (leaveColumn) {
-                        const updateLeaveQuery = `
-                            UPDATE leave_hrs
-                            SET ${leaveColumn} = ${leaveColumn} - ?
+                        const checkLeaveBalanceQuery = `
+                            SELECT ${leaveColumn} AS currentBalance
+                            FROM leave_hrs
                             WHERE idemployees = ?
                         `;
-                        console.log('SQL Query:', updateLeaveQuery);
-                        console.log('Values:', [leaveHours, requestData.idemployees]);
-                        db.query(updateLeaveQuery, [leaveHours, requestData.idemployees], (err, leaveResult) => {
+
+                        db.query(checkLeaveBalanceQuery, [requestData.idemployees], (err, balanceResult) => {
                             if (err) {
-                                console.error('Error updating leave balance:', err.stack);
-                                res.status(500).send('Error updating leave balance');
+                                console.error('Error fetching leave balance:', err.stack);
+                                res.status(500).send('Error fetching leave balance');
                                 return;
+                            } else {
+                                const currentBalance = balanceResult[0].currentBalance;
+                                console.log('Current leave balance:', currentBalance);
+
+                                const updateLeaveQuery = `
+                                    UPDATE leave_hrs
+                                    SET ${leaveColumn} = ${leaveColumn} - ?
+                                    WHERE idemployees = ?
+                                `;
+                                db.query(updateLeaveQuery, [leaveHours, requestData.idemployees], (err, leaveResult) => {
+                                    if (err) {
+                                        console.error('Error updating leave balance:', err.stack);
+                                        res.status(500).send('Error updating leave balance');
+                                        return;
+                                    }
+        
+                                    console.log('Leave balance updated successfully:', leaveResult);
+        
+                                    const transporter = nodemailer.createTransport({
+                                        service: 'gmail',
+                                        auth: {
+                                            user: 'sumorockyeah2@gmail.com',
+                                            pass: 'yrjsxaiqcrelpbba'
+                                        }
+                                    });
+                        
+                                    const mailOptions = {
+                                        from: 'sumorockyeah2@gmail.com',
+                                        to: 'sumorockyeah@gmail.com',
+                                        subject: `แจ้งเตือน: คำร้อง${status === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติ' : 'ถูกปฏิเสธ'}`,
+                                        html: `
+                                            <p>คำร้องลาของคุณ${status === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติจากหัวหน้าแล้ว' : 'ไม่ผ่านการอนุมัติจากหัวหน้า'}</p>
+                                            <ul>
+                                                <li>ประเภทการลา: ${requestData.leaveType}</li>
+                                                <li>วันที่เริ่มต้น: ${requestData.start_date} เวลา: ${requestData.start_time}</li>
+                                                <li>วันที่สิ้นสุด: ${requestData.end_date} เวลา: ${requestData.end_time}</li>
+                                                <li>เหตุผล: ${requestData.reason}</li>
+                                                <li>สถานะ: ${status}</li>
+                                            </ul>
+                                        `
+                                    };
+                        
+                                    transporter.sendMail(mailOptions, (error, info) => {
+                                        if (error) {
+                                            console.error('Error sending email:', error);
+                                            res.status(500).send('Request updated, but failed to send email');
+                                        } else {
+                                            console.log('Email sent:', info.response);
+                                            res.status(200).send('Request updated and email sent successfully');
+                                        }
+                                    });
+                                });
                             }
-
-                            console.log('Leave balance updated successfully:', leaveResult);
-
-                            const transporter = nodemailer.createTransport({
-                                service: 'gmail',
-                                auth: {
-                                    user: 'sumorockyeah2@gmail.com',
-                                    pass: 'yrjsxaiqcrelpbba'
-                                }
-                            });
-                
-                            const mailOptions = {
-                                from: 'sumorockyeah2@gmail.com',
-                                to: 'sumorockyeah@gmail.com',
-                                subject: `แจ้งเตือน: คำร้อง${status === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติ' : 'ถูกปฏิเสธ'}`,
-                                html: `
-                                    <p>คำร้องลาของคุณ${status === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติจากหัวหน้าแล้ว' : 'ไม่ผ่านการอนุมัติจากหัวหน้า'}</p>
-                                    <ul>
-                                        <li>ประเภทการลา: ${requestData.leaveType}</li>
-                                        <li>วันที่เริ่มต้น: ${requestData.start_date} เวลา: ${requestData.start_time}</li>
-                                        <li>วันที่สิ้นสุด: ${requestData.end_date} เวลา: ${requestData.end_time}</li>
-                                        <li>เหตุผล: ${requestData.reason}</li>
-                                        <li>สถานะ: ${status}</li>
-                                    </ul>
-                                `
-                            };
-                
-                            transporter.sendMail(mailOptions, (error, info) => {
-                                if (error) {
-                                    console.error('Error sending email:', error);
-                                    res.status(500).send('Request updated, but failed to send email');
-                                } else {
-                                    console.log('Email sent:', info.response);
-                                    res.status(200).send('Request updated and email sent successfully');
-                                }
-                            });
                         });
                     } else {
                         res.status(400).send('Invalid leave type!');
