@@ -570,6 +570,7 @@ app.put('/request-update/:id', (req, res) => {
                                 res.status(500).send('Error fetching leave balance');
                                 return;
                             } else {
+                                console.log('Balance Result:', balanceResult);
                                 const currentBalance = balanceResult[0].currentBalance;
                                 console.log('Current leave balance:', currentBalance);
 
