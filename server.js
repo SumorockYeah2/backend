@@ -486,9 +486,11 @@ function calculateLeaveHours(startDateTime, endDateTime) {
 
         // คิดช่วงเช้า
         if (startDateTime < lunchStart) {
-            const morningEnd = Math.min(lunchStart, endDateTime);
-            totalHours += (morningEnd - startDateTime) / (1000 * 60 * 60);
-            startDateTime = new Date(morningEnd);
+            const morningEnd = new Date(Math.min(lunchStart.getTime(), endDateTime.getTime()));
+            if (startDateTime < morningEnd) {
+                totalHours += (morningEnd - startDateTime) / (1000 * 60 * 60);
+                startDateTime = new Date(morningEnd);
+            }
         }
 
         // ข้ามพักเที่ยง
@@ -498,9 +500,11 @@ function calculateLeaveHours(startDateTime, endDateTime) {
 
         // คิดช่วงบ่าย
         if (startDateTime >= lunchEnd && startDateTime < workEnd) {
-            const afternoonEnd = Math.min(workEnd, endDateTime);
-            totalHours += (afternoonEnd - startDateTime) / (1000 * 60 * 60);
-            startDateTime = new Date(afternoonEnd);
+            const afternoonEnd = new Date(Math.min(workEnd.getTime(), endDateTime.getTime()));
+            if (startDateTime < afternoonEnd) {
+                totalHours += (afternoonEnd - startDateTime) / (1000 * 60 * 60);
+                startDateTime = new Date(afternoonEnd);
+            }
         }
 
         if (startDateTime >= workEnd) {
@@ -557,6 +561,8 @@ app.put('/request-update/:id', (req, res) => {
                             SET ${leaveColumn} = ${leaveColumn} - ?
                             WHERE idemployees = ?
                         `;
+                        console.log('SQL Query:', updateLeaveQuery);
+                        console.log('Values:', [leaveHours, requestData.idemployees]);
                         db.query(updateLeaveQuery, [leaveHours, requestData.idemployees], (err, leaveResult) => {
                             if (err) {
                                 console.error('Error updating leave balance:', err.stack);
