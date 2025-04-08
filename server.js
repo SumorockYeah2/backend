@@ -497,9 +497,9 @@ app.put('/request-update/:id', (req, res) => {
                     const mailOptions = {
                         from: 'sumorockyeah2@gmail.com',
                         to: 'sumorockyeah@gmail.com',
-                        subject: `แจ้งเตือน: คำร้อง${leaveStatus === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติ' : 'ถูกปฏิเสธ'}`,
+                        subject: `แจ้งเตือน: คำร้อง${status === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติ' : 'ถูกปฏิเสธ'}`,
                         html: `
-                            <p>คำร้องลาของคุณ${leaveStatus === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติจากหัวหน้าแล้ว' : 'ไม่ผ่านการอนุมัติจากหัวหน้า'}</p>
+                            <p>คำร้องลาของคุณ${status === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติจากหัวหน้าแล้ว' : 'ไม่ผ่านการอนุมัติจากหัวหน้า'}</p>
                             <ul>
                                 <li>ประเภทการลา: ${requestData.leaveType}</li>
                                 <li>วันที่เริ่มต้น: ${requestData.start_date} เวลา: ${requestData.start_time}</li>
