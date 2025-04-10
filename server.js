@@ -300,19 +300,35 @@ app.post('/empdata-add', (req, res) => {
             return res.status(500).send('Error adding employee');
         }
 
-        // เพิ่มข้อมูลวันลาใน leave_hrs
-        const leaveQuery = `
-            INSERT INTO leave_hrs (idemployees, absence_hrs, sick_hrs, vacation_hrs)
-            VALUES (?, 0, 0, 0)
+        const checkLeaveQuery = `
+            SELECT COUNT(*) AS count FROM leave_hrs WHERE idemployees = ?
         `;
 
-        db.query(leaveQuery, [idemployees], (leaveErr, leaveResult) => {
-            if (leaveErr) {
-                console.error('Error adding leave hours:', leaveErr);
-                return res.status(500).send('Error adding leave hours');
+        db.query(checkLeaveQuery, [idemployees], (checkErr, checkResult) => {
+            if (checkErr) {
+                console.error('Error checking leave hours:', checkErr);
+                return res.status(500).send('Error checking leave hours');
             }
 
-            res.status(200).send('Employee and leave hours added successfully');
+            if (checkResult[0].count > 0) {
+                console.log(`Leave hours already exist for idemployees: ${idemployees}`);
+                res.status(200).send('Employee added successfully (leave hours already exist)');
+            } else {
+                // เพิ่มข้อมูลวันลาใน leave_hrs
+                const leaveQuery = `
+                    INSERT INTO leave_hrs (idemployees, absence_hrs, sick_hrs, vacation_hrs)
+                    VALUES (?, 0, 0, 0)
+                `;
+
+                db.query(leaveQuery, [idemployees], (leaveErr, leaveResult) => {
+                    if (leaveErr) {
+                        console.error('Error adding leave hours:', leaveErr);
+                        return res.status(500).send('Error adding leave hours');
+                    }
+
+                    res.status(200).send('Employee and leave hours added successfully');
+                });
+            }
         });
     });
 });
@@ -862,22 +878,32 @@ app.put('/attendance-update', (req, res) => {
 app.delete('/empdata-remove/:idemployees', (req, res) => {
     const { idemployees } = req.params;
 
+    const deleteLeaveHrsQuery = 'DELETE FROM leave_hrs WHERE idemployees = ?';
     const deleteEmployeeQuery = 'DELETE FROM employees WHERE idemployees = ?';
     const deleteUserCredentialsQuery = 'DELETE FROM user_credentials WHERE idemployees = ?';
 
-    db.query(deleteEmployeeQuery, [idemployees], (err, employeeResult) => {
+    db.query(deleteLeaveHrsQuery, [idemployees], (err, leaveResult) => {
         if (err) {
-            console.error('Error deleting employee:', err);
-            return res.status(500).send('Error deleting employee');
+            console.error('Error deleting leave hours:', err);
+            return res.status(500).send('Error deleting leave hours');
         }
 
-        db.query(deleteUserCredentialsQuery, [idemployees], (err, credentialsResult) => {
+        // ลบข้อมูลใน employees
+        db.query(deleteEmployeeQuery, [idemployees], (err, employeeResult) => {
             if (err) {
-                console.error('Error deleting user credentials:', err);
-                return res.status(500).send('Error deleting user credentials');
+                console.error('Error deleting employee:', err);
+                return res.status(500).send('Error deleting employee');
             }
 
-            res.status(200).send('Employee and user credentials deleted successfully');
+            // ลบข้อมูลใน user_credentials
+            db.query(deleteUserCredentialsQuery, [idemployees], (err, credentialsResult) => {
+                if (err) {
+                    console.error('Error deleting user credentials:', err);
+                    return res.status(500).send('Error deleting user credentials');
+                }
+
+                res.status(200).send('Employee, user credentials, and leave hours deleted successfully');
+            });
         });
     });
 });
