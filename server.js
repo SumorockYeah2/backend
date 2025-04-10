@@ -696,6 +696,8 @@ app.put('/request-update/:id', (req, res) => {
                                     //     }
                                     // });
 
+                                    console.log("requestdata:", requestData);
+                                    
                                     const emailBody = `
                                         <p>คำร้องลาของคุณผ่านการอนุมัติจากหัวหน้าแล้ว</p>
                                         <ul>
