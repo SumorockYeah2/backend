@@ -618,7 +618,6 @@ app.put('/request-update/:id', (req, res) => {
 
                     if (requestData.leaveType.startsWith('งานนอกสถานที่')) {
                         console.log('Skipping leave hour calculation for offsite work');
-                        res.status(200).send('Request updated successfully without leave hour calculation');
                         return;
                     }
 
