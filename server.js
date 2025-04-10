@@ -240,14 +240,14 @@ app.post('/request-send', (req, res) => {
             const transporter = nodemailer.createTransport({
                 service: 'gmail',
                 auth: {
-                    user: 'sumorockyeah2@gmail.com',
-                    pass: 'yrjsxaiqcrelpbba'
+                    user: 'leavetimeattendance@gmail.com',
+                    pass: 'ahdtiadsgclcepxe'
                 }
             });
 
             const mailOptions = {
-                from: 'sumorockyeah2@gmail.com',
-                to: 'sumorockyeah@gmail.com',
+                from: 'leavetimeattendance@gmail.com',
+                to: 'sumorockyeah2@gmail.com',
                 subject: 'แจ้งเตือนคำร้องลาจากพนักงาน',
                 html: `
                     <p>คำร้องลาจากพนักงาน:</p>
@@ -720,14 +720,14 @@ app.put('/request-update/:id', async (req, res) => {
                                     const transporter = nodemailer.createTransport({
                                         service: 'gmail',
                                         auth: {
-                                            user: 'sumorockyeah2@gmail.com',
-                                            pass: 'yrjsxaiqcrelpbba'
+                                            user: 'leavetimeattendance@gmail.com',
+                                            pass: 'ahdtiadsgclcepxe'
                                         }
                                     });
                         
                                     const mailOptions = {
-                                        from: 'sumorockyeah2@gmail.com',
-                                        to: 'sumorockyeah@gmail.com',
+                                        from: 'leavetimeattendance@gmail.com',
+                                        to: 'sumorockyeah2@gmail.com',
                                         subject: `แจ้งเตือน: คำร้อง${status === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติ' : 'ถูกปฏิเสธ'}`,
                                         html: `
                                             <p>คำร้องลาของคุณ${status === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติจากหัวหน้าแล้ว' : 'ไม่ผ่านการอนุมัติจากหัวหน้า'}</p>
@@ -757,14 +757,14 @@ app.put('/request-update/:id', async (req, res) => {
                         const transporter = nodemailer.createTransport({
                             service: 'gmail',
                             auth: {
-                                user: 'sumorockyeah2@gmail.com',
-                                pass: 'yrjsxaiqcrelpbba'
+                                user: 'leavetimeattendance@gmail.com',
+                                pass: 'ahdtiadsgclcepxe'
                             }
                         });
 
                         const mailOptions = {
-                            from: 'sumorockyeah2@gmail.com',
-                            to: 'sumorockyeah@gmail.com',
+                            from: 'leavetimeattendance@gmail.com',
+                            to: 'sumorockyeah2@gmail.com',
                             subject: `แจ้งเตือน: คำร้อง${status === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติ' : 'ถูกปฏิเสธ'}`,
                             html: `
                                 <p>คำร้องลาของคุณ${status === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติจากหัวหน้าแล้ว' : 'ไม่ผ่านการอนุมัติจากหัวหน้า'}</p>
