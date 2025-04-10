@@ -259,7 +259,7 @@ app.post('/request-send', (req, res) => {
 
             const data = {
                 from: 'Leave & Time Attendance <no-reply@YOUR_DOMAIN_NAME>',
-                to: 'sumorockyeah@gmail.com',
+                to: 'sumorockyeah2@gmail.com',
                 subject: `แจ้งเตือนคำร้องลาจากพนักงาน`,
                 html: emailBody
             };
