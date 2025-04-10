@@ -528,7 +528,9 @@ function isWorkingDay(date, holidays) {
     return !isWeekend && !isHoliday;
 }
 
-function calculateLeaveHours(startDateTime, endDateTime) {
+const holidays = await fetchHolidays();
+
+function calculateLeaveHours(startDateTime, endDateTime, holidays, leaveType) {
     let totalHours = 0;
 
     while (startDateTime < endDateTime) {
@@ -616,7 +618,7 @@ app.put('/request-update/:id', (req, res) => {
                     const requestData = requestResult[0];
                     const startDateTime = new Date(`${requestData.start_date}T${requestData.start_time}`);
                     const endDateTime = new Date(`${requestData.end_date}T${requestData.end_time}`);
-                    const leaveHours = calculateLeaveHours(startDateTime, endDateTime);
+                    const leaveHours = calculateLeaveHours(startDateTime, endDateTime, holidays, requestData.leaveType);
 
                     console.log('Calculated leave hours:', leaveHours);
 
