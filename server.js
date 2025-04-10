@@ -652,14 +652,14 @@ function calculateLeaveHoursWithType(startDateTime, endDateTime, holidays, leave
     return totalHours;
 }
 
-app.put('/request-update/:id', (req, res) => {
+app.put('/request-update/:id', async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
     const updateQuery = `UPDATE requests SET status = ? WHERE idrequests = ?`;
     const updateValues = [status, id];
 
-    db.query(updateQuery, updateValues, (err, result) => {
+    db.query(updateQuery, updateValues, async (err, result) => {
         if (err) {
             console.error('Error updating request data:', err.stack);
             res.status(500).send('Error updating request data');
@@ -669,7 +669,7 @@ app.put('/request-update/:id', (req, res) => {
             res.status(200).send('Request data updated successfully');
 
             const selectQuery = `SELECT * FROM requests WHERE idrequests = ?`;
-            db.query(selectQuery, [id], (err, requestResult) => {
+            db.query(selectQuery, [id], async (err, requestResult) => {
                 if (err) {
                     console.error('Error fetching request data:', err.stack);
                     res.status(500).send('Error fetching request data');
@@ -685,6 +685,7 @@ app.put('/request-update/:id', (req, res) => {
 
                     const startDateTime = new Date(`${requestData.start_date}T${requestData.start_time}`);
                     const endDateTime = new Date(`${requestData.end_date}T${requestData.end_time}`);
+                    const holidays = await fetchHolidays();
                     const leaveHours = calculateLeaveHoursWithType(startDateTime, endDateTime, holidays, requestData.leaveType);
 
                     console.log('Calculated leave hours:', leaveHours);
