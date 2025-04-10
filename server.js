@@ -1517,18 +1517,18 @@ app.put('/user-credentials-update', async (req, res) => {
 });
 
 app.post('/user-credentials-add', (req, res) => {
-    const { idemployees, email, username, password, role } = req.body;
+    const { idusers, idemployees, email, username, password, role } = req.body;
 
-    if (!idemployees || !email || !username || !password || !role) {
+    if (!idusers || !idemployees || !email || !username || !password || !role) {
         return res.status(400).send('Missing required fields');
     }
 
     const query = `
-        INSERT INTO user_credentials (idemployees, email, username, password, role)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO user_credentials (idusers, idemployees, email, username, password, role)
+        VALUES (?, ?, ?, ?, ?, ?)
     `;
 
-    db.query(query, [idemployees, email, username, password, role], (err, result) => {
+    db.query(query, [idusers, idemployees, email, username, password, role], (err, result) => {
         if (err) {
             console.error('Error adding user credentials:', err);
             return res.status(500).send('Error adding user credentials');
