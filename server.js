@@ -528,7 +528,7 @@ function isWorkingDay(date, holidays) {
     return !isWeekend && !isHoliday;
 }
 
-function calculateLeaveHours(startDateTime, endDateTime) {
+function calculateLeaveHours(startDateTime, endDateTime) { //for dashboard
     let totalHours = 0;
 
     while (startDateTime < endDateTime) {
@@ -545,6 +545,68 @@ function calculateLeaveHours(startDateTime, endDateTime) {
         lunchEnd.setHours(13, 0, 0, 0);
 
         //ข้ามเสาร์-อาทิตย์และวันหยุด กรณีลากิจและลาป่วย
+        if (leaveType !== 'ลาพักร้อน' && !isWorkingDay(startDateTime, holidays)) {
+            startDateTime.setDate(startDateTime.getDate() + 1);
+            startDateTime.setHours(8, 30, 0, 0);
+            continue;
+        }
+
+        // นอกเวลางาน - ข้าม
+        if (startDateTime >= workEnd) {
+            startDateTime.setDate(startDateTime.getDate() + 1);
+            startDateTime.setHours(8, 30, 0, 0);
+            continue;
+        }
+
+        // คิดช่วงเช้า
+        if (startDateTime < lunchStart) {
+            const morningEnd = new Date(Math.min(lunchStart.getTime(), endDateTime.getTime()));
+            if (startDateTime < morningEnd) {
+                totalHours += (morningEnd - startDateTime) / (1000 * 60 * 60);
+                startDateTime = new Date(morningEnd);
+            }
+        }
+
+        // ข้ามพักเที่ยง
+        if (startDateTime >= lunchStart && startDateTime < lunchEnd) {
+            startDateTime = new Date(lunchEnd);
+        }
+
+        // คิดช่วงบ่าย
+        if (startDateTime >= lunchEnd && startDateTime < workEnd) {
+            const afternoonEnd = new Date(Math.min(workEnd.getTime(), endDateTime.getTime()));
+            if (startDateTime < afternoonEnd) {
+                totalHours += (afternoonEnd - startDateTime) / (1000 * 60 * 60);
+                startDateTime = new Date(afternoonEnd);
+            }
+        }
+
+        if (startDateTime >= workEnd) {
+            startDateTime.setDate(startDateTime.getDate() + 1);
+            startDateTime.setHours(8, 30, 0, 0);
+        }
+    }
+
+    return totalHours;
+}
+
+function calculateLeaveHoursWithType(startDateTime, endDateTime, holidays, leaveType) {
+    let totalHours = 0;
+
+    while (startDateTime < endDateTime) {
+        const workStart = new Date(startDateTime);
+        workStart.setHours(8, 30, 0, 0);
+
+        const workEnd = new Date(startDateTime);
+        workEnd.setHours(17, 30, 0, 0);
+
+        const lunchStart = new Date(startDateTime);
+        lunchStart.setHours(12, 0, 0, 0);
+
+        const lunchEnd = new Date(startDateTime);
+        lunchEnd.setHours(13, 0, 0, 0);
+
+        // ข้ามวันเสาร์-อาทิตย์และวันหยุดนักขัตฤกษ์ (เฉพาะกรณีลากิจและลาป่วย)
         if (leaveType !== 'ลาพักร้อน' && !isWorkingDay(startDateTime, holidays)) {
             startDateTime.setDate(startDateTime.getDate() + 1);
             startDateTime.setHours(8, 30, 0, 0);
@@ -623,7 +685,7 @@ app.put('/request-update/:id', (req, res) => {
 
                     const startDateTime = new Date(`${requestData.start_date}T${requestData.start_time}`);
                     const endDateTime = new Date(`${requestData.end_date}T${requestData.end_time}`);
-                    const leaveHours = calculateLeaveHours(startDateTime, endDateTime);
+                    const leaveHours = calculateLeaveHoursWithType(startDateTime, endDateTime, holidays, requestData.leaveType);
 
                     console.log('Calculated leave hours:', leaveHours);
 
