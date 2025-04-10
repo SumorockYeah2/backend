@@ -317,7 +317,7 @@ app.post('/empdata-add', (req, res) => {
                 // เพิ่มข้อมูลวันลาใน leave_hrs
                 const leaveQuery = `
                     INSERT INTO leave_hrs (idemployees, absence_hrs, sick_hrs, vacation_hrs)
-                    VALUES (?, 0, 0, 0)
+                    VALUES (?, 80, 240, 160)
                 `;
 
                 db.query(leaveQuery, [idemployees], (leaveErr, leaveResult) => {
