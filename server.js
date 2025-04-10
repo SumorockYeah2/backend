@@ -614,6 +614,14 @@ app.put('/request-update/:id', (req, res) => {
                     return;
                 } else {
                     const requestData = requestResult[0];
+                    console.log("requestData:", requestData);
+
+                    if (requestData.leaveType.startsWith('งานนอกสถานที่')) {
+                        console.log('Skipping leave hour calculation for offsite work');
+                        res.status(200).send('Request updated successfully without leave hour calculation');
+                        return;
+                    }
+
                     const startDateTime = new Date(`${requestData.start_date}T${requestData.start_time}`);
                     const endDateTime = new Date(`${requestData.end_date}T${requestData.end_time}`);
                     const leaveHours = calculateLeaveHours(startDateTime, endDateTime);
