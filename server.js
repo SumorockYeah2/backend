@@ -16,14 +16,6 @@ const path = require('path');
 
 const nodemailer = require('nodemailer');
 
-// const mailgun = require('mailgun-js');
-
-// โหลดค่าจาก .env
-// const DOMAIN = process.env.MAILGUN_DOMAIN;
-// const API_KEY = process.env.MAILGUN_API_KEY;
-
-// const mg = mailgun({ apiKey: API_KEY, domain: DOMAIN });
-
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/'); // โฟลเดอร์สำหรับจัดเก็บไฟล์
@@ -244,35 +236,6 @@ app.post('/request-send', (req, res) => {
             return;
         } else {
             res.status(200).send('Request data inserted successfully');
-
-            // const emailBody = `
-            //         <p>คำร้องลาจากพนักงาน:</p>
-            //         <ul>
-            //             <li>ประเภทการลา: ${leaveType}</li>
-            //             <li>วันที่เริ่มต้น: ${leaveStartDate} เวลา: ${leaveStartTime}</li>
-            //             <li>วันที่สิ้นสุด: ${leaveEndDate} เวลา: ${leaveEndTime}</li>
-            //             <li>เหตุผล: ${leaveDescription}</li>
-            //             <li>สถานที่: ${OffsitePlace || 'ไม่ระบุ'}</li>
-            //         </ul>
-            //         <p>สถานะ: ${leaveStatus}</p>
-            // `;
-
-            // const data = {
-            //     from: 'Leave & Time Attendance <no-reply@sandbox37817feb96c441c59db861edafe7a2d2.mailgun.org>',
-            //     to: 'sumorockyeah2@gmail.com',
-            //     subject: `แจ้งเตือนคำร้องลาจากพนักงาน`,
-            //     html: emailBody
-            // };
-
-            // mg.messages().send(data, (error, body) => {
-            //     if (error) {
-            //         console.error('Error sending email:', error);
-            //         return res.status(500).send('Request sent, but failed to send email');
-            //     } else {
-            //         console.log('Email sent:', body);
-            //         return res.status(200).send('Request sent and email sent successfully');
-            //     }
-            // });
 
             const transporter = nodemailer.createTransport({
                 service: 'gmail',
@@ -771,36 +734,6 @@ app.put('/request-update/:id', async (req, res) => {
                                             res.status(200).send('Request updated and email sent successfully');
                                         }
                                     });
-
-                                    // console.log("requestdata:", requestData);
-                                    
-                                    // const emailBody = `
-                                    //     <p>คำร้องลาของคุณผ่านการอนุมัติจากหัวหน้าแล้ว</p>
-                                    //     <ul>
-                                    //         <li>ประเภทการลา: ${requestData.leaveType}</li>
-                                    //         <li>วันที่เริ่มต้น: ${requestData.start_date} เวลา: ${requestData.start_time}</li>
-                                    //         <li>วันที่สิ้นสุด: ${requestData.end_date} เวลา: ${requestData.end_time}</li>
-                                    //         <li>เหตุผล: ${requestData.reason}</li>
-                                    //         <li>สถานะ: ${status}</li>
-                                    //     </ul>
-                                    // `;
-
-                                    // const data = {
-                                    //     from: 'Leave & Time Attendance <no-reply@sandbox37817feb96c441c59db861edafe7a2d2.mailgun.org>',
-                                    //     to: 'sumorockyeah2@gmail.com',
-                                    //     subject: `คำร้องผ่านการอนุมัติ`,
-                                    //     html: emailBody
-                                    // };
-
-                                    // mg.messages().send(data, (error, body) => {
-                                    //     if (error) {
-                                    //         console.error('Error sending email:', error);
-                                    //         return res.status(500).send('Request updated, but failed to send email');
-                                    //     } else {
-                                    //         console.log('Email sent:', body);
-                                    //         return res.status(200).send('Request updated and email sent successfully');
-                                    //     }
-                                    // });
                                 });
                             }
                         });
@@ -838,33 +771,6 @@ app.put('/request-update/:id', async (req, res) => {
                                 res.status(200).send('Request updated and email sent successfully');
                             }
                         });
-                        // const emailBody = `
-                        //     <p>คำร้องลาของคุณไม่ผ่านการอนุมัติจากหัวหน้า</p>
-                        //     <ul>
-                        //         <li>ประเภทการลา: ${requestData.leaveType}</li>
-                        //         <li>วันที่เริ่มต้น: ${requestData.start_date} เวลา: ${requestData.start_time}</li>
-                        //         <li>วันที่สิ้นสุด: ${requestData.end_date} เวลา: ${requestData.end_time}</li>
-                        //         <li>เหตุผล: ${requestData.reason}</li>
-                        //         <li>สถานะ: ${status}</li>
-                        //     </ul>
-                        // `;
-
-                        // const data = {
-                        //     from: 'Leave & Time Attendance <no-reply@sandbox37817feb96c441c59db861edafe7a2d2.mailgun.org>',
-                        //     to: 'sumorockyeah2@gmail.com',
-                        //     subject: `คำร้องถูกปฏิเสธ`,
-                        //     html: emailBody
-                        // };
-
-                        // mg.messages().send(data, (error, body) => {
-                        //     if (error) {
-                        //         console.error('Error sending email:', error);
-                        //         return res.status(500).send('Request updated, but failed to send email');
-                        //     } else {
-                        //         console.log('Email sent:', body);
-                        //         return res.status(200).send('Request updated and email sent successfully');
-                        //     }
-                        // });
                     }
                 }
             });
@@ -1585,18 +1491,18 @@ app.put('/user-credentials-update', async (req, res) => {
 });
 
 app.post('/user-credentials-add', (req, res) => {
-    const { idusers, email, username, idemployees, role, password } = req.body;
+    const { idemployees, email, username, password, role } = req.body;
 
-    if (!idusers || !email || !username || !idemployees || !role || !password) {
+    if (!idemployees || !email || !username || !password || !role) {
         return res.status(400).send('Missing required fields');
     }
 
     const query = `
-        INSERT INTO user_credentials (idusers, email, username, idemployees, role, password)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO user_credentials (idemployees, email, username, password, role)
+        VALUES (?, ?, ?, ?, ?)
     `;
 
-    db.query(query, [idusers, email, username, idemployees, role, password], (err, result) => {
+    db.query(query, [idemployees, email, username, password, role], (err, result) => {
         if (err) {
             console.error('Error adding user credentials:', err);
             return res.status(500).send('Error adding user credentials');
