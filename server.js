@@ -630,6 +630,12 @@ app.put('/request-update/:id', (req, res) => {
                     }
 
                     if (status === 'อนุมัติแล้ว' && leaveColumn) {
+                        if (requestData.leaveType.startsWith('งานนอกสถานที่')) {
+                            console.log('Skipping leave hour deduction for offsite work');
+                            res.status(200).send('Request updated successfully without leave hour deduction');
+                            return;
+                        }
+
                         const checkLeaveBalanceQuery = `
                             SELECT ${leaveColumn} AS currentBalance
                             FROM leave_hrs
