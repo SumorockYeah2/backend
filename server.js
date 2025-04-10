@@ -267,10 +267,10 @@ app.post('/request-send', (req, res) => {
             mg.messages().send(data, (error, body) => {
                 if (error) {
                     console.error('Error sending email:', error);
-                    res.status(500).send('Request sent, but failed to send email');
+                    return res.status(500).send('Request sent, but failed to send email');
                 } else {
                     console.log('Email sent:', body);
-                    res.status(200).send('Request sent and email sent successfully');
+                    return res.status(200).send('Request sent and email sent successfully');
                 }
             });
 
@@ -795,10 +795,10 @@ app.put('/request-update/:id', async (req, res) => {
                                     mg.messages().send(data, (error, body) => {
                                         if (error) {
                                             console.error('Error sending email:', error);
-                                            res.status(500).send('Request updated, but failed to send email');
+                                            return res.status(500).send('Request updated, but failed to send email');
                                         } else {
                                             console.log('Email sent:', body);
-                                            res.status(200).send('Request updated and email sent successfully');
+                                            return res.status(200).send('Request updated and email sent successfully');
                                         }
                                     });
                                 });
@@ -859,10 +859,10 @@ app.put('/request-update/:id', async (req, res) => {
                         mg.messages().send(data, (error, body) => {
                             if (error) {
                                 console.error('Error sending email:', error);
-                                res.status(500).send('Request updated, but failed to send email');
+                                return res.status(500).send('Request updated, but failed to send email');
                             } else {
                                 console.log('Email sent:', body);
-                                res.status(200).send('Request updated and email sent successfully');
+                                return res.status(200).send('Request updated and email sent successfully');
                             }
                         });
                     }
