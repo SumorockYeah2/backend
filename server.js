@@ -256,8 +256,10 @@ app.post('/request-send', (req, res) => {
                     res.status(500).send('Supervisor not found for the employee');
                     return;
                 }
+                console.log('Supervisor Query Result:', supervisorResult);
 
                 const supervisorEmail = supervisorResult[0].supervisorEmail;
+                console.log("supervisor Email:", supervisorEmail);
 
                 const transporter = nodemailer.createTransport({
                     service: 'gmail',
