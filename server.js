@@ -778,17 +778,17 @@ app.put('/request-update/:id', async (req, res) => {
                     
                                 const mailOptions = {
                                     from: 'leavetimeattendance@gmail.com',
-                                    to: 'sumorockyeah2@gmail.com',
+                                    to: employeeEmail,
                                     subject: `แจ้งเตือน: คำร้อง${status === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติ' : 'ถูกปฏิเสธ'}`,
                                     html: `
                                         <p>${requestData.leaveType === 'งานนอกสถานที่' ? 'คำร้องงานนอกสถานที่' : 'คำร้องลา'}ของคุณ${status === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติจากหัวหน้าแล้ว' : 'ไม่ผ่านการอนุมัติจากหัวหน้า'}</p>
                                         <ul>
-                                            <li>ชื่อพนักงาน: ${employeeName}</li>
+                                            <li>ชื่อพนักงาน: ${requestData.employeeName}</li>
                                             <li>ประเภทการลา: ${requestData.leaveType}</li>
                                             <li>วันที่เริ่มต้น: ${requestData.start_date} เวลา: ${requestData.start_time}</li>
                                             <li>วันที่สิ้นสุด: ${requestData.end_date} เวลา: ${requestData.end_time}</li>
                                             <li>เหตุผล: ${requestData.reason}</li>
-                                            <li>หัวหน้างาน: ${supervisorName}</li>
+                                            <li>หัวหน้างาน: ${requestData.supervisorName}</li>
                                             <li>สถานะ: ${status}</li>
                                         </ul>
                                     `
@@ -822,12 +822,12 @@ app.put('/request-update/:id', async (req, res) => {
                         html: `
                             <p>${requestData.leaveType === 'งานนอกสถานที่' ? 'คำร้องงานนอกสถานที่' : 'คำร้องลา'}ของคุณ${status === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติจากหัวหน้าแล้ว' : 'ไม่ผ่านการอนุมัติจากหัวหน้า'}</p>
                             <ul>
-                                <li>ชื่อพนักงาน: ${employeeName}</li>
+                                <li>ชื่อพนักงาน: ${requestData.employeeName}</li>
                                 <li>ประเภทการลา: ${requestData.leaveType}</li>
                                 <li>วันที่เริ่มต้น: ${requestData.start_date} เวลา: ${requestData.start_time}</li>
                                 <li>วันที่สิ้นสุด: ${requestData.end_date} เวลา: ${requestData.end_time}</li>
                                 <li>เหตุผล: ${requestData.reason}</li>
-                                <li>หัวหน้างาน: ${supervisorName}</li>
+                                <li>หัวหน้างาน: ${requestData.supervisorName}</li>
                                 <li>สถานะ: ${status}</li>
                             </ul>
                         `
