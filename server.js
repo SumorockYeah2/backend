@@ -261,6 +261,9 @@ app.post('/request-send', (req, res) => {
                 const supervisorEmail = supervisorResult[0].supervisorEmail;
                 console.log("supervisor Email:", supervisorEmail);
 
+                const supervisorName = supervisorResult[0].supervisorName;
+                console.log("Supervisor Name:", supervisorName);
+
                 const employeeName = supervisorResult[0].employeeName;
                 console.log("Employee Name:", employeeName);
 
