@@ -261,6 +261,9 @@ app.post('/request-send', (req, res) => {
                 const supervisorEmail = supervisorResult[0].supervisorEmail;
                 console.log("supervisor Email:", supervisorEmail);
 
+                const employeeName = supervisorResult[0].employeeName;
+                console.log("Employee Name:", employeeName);
+
                 const transporter = nodemailer.createTransport({
                     service: 'gmail',
                     auth: {
