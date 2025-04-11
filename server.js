@@ -238,7 +238,7 @@ app.post('/request-send', (req, res) => {
             res.status(200).send('Request data inserted successfully');
 
             const supervisorQuery = `
-                SELECT e.email AS supervisorEmail
+                SELECT e.email AS supervisorEmail, e.name AS supervisorName, sub.name AS employeeName
                 FROM employees e
                 JOIN employees sub ON e.idemployees = sub.supervisor
                 WHERE sub.idemployees = ?
@@ -274,13 +274,15 @@ app.post('/request-send', (req, res) => {
                     html: `
                         <p>คำร้องลาจากพนักงาน:</p>
                         <ul>
+                            <li>ชื่อพนักงาน: ${employeeName}</li>
                             <li>ประเภทการลา: ${leaveType}</li>
                             <li>วันที่เริ่มต้น: ${leaveStartDate} เวลา: ${leaveStartTime}</li>
                             <li>วันที่สิ้นสุด: ${leaveEndDate} เวลา: ${leaveEndTime}</li>
                             <li>เหตุผล: ${leaveDescription}</li>
                             <li>สถานที่: ${OffsitePlace || 'ไม่ระบุ'}</li>
+                            <li>หัวหน้า: ${supervisorName}</li>
+                            <li>สถานะ: ${leaveStatus}</li>
                         </ul>
-                        <p>สถานะ: ${leaveStatus}</p>
                     `,
                 };
 
@@ -671,9 +673,10 @@ app.put('/request-update/:id', async (req, res) => {
             res.status(200).send('Request data updated successfully');
 
             const selectQuery = `
-                SELECT r.*, e.email AS employeeEmail
+                SELECT r.*, e.email AS employeeEmail, e.name AS employeeName, s.name AS supervisorName
                 FROM requests r
                 JOIN employees e ON r.idemployees = e.idemployees
+                JOIN employees s ON e.supervisor = s.idemployees
                 WHERE r.idrequests = ?
             `;
 
@@ -772,10 +775,12 @@ app.put('/request-update/:id', async (req, res) => {
                                     html: `
                                         <p>คำร้องลาของคุณ${status === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติจากหัวหน้าแล้ว' : 'ไม่ผ่านการอนุมัติจากหัวหน้า'}</p>
                                         <ul>
+                                            <li>ชื่อพนักงาน: ${employeeName}</li>
                                             <li>ประเภทการลา: ${requestData.leaveType}</li>
                                             <li>วันที่เริ่มต้น: ${requestData.start_date} เวลา: ${requestData.start_time}</li>
                                             <li>วันที่สิ้นสุด: ${requestData.end_date} เวลา: ${requestData.end_time}</li>
                                             <li>เหตุผล: ${requestData.reason}</li>
+                                            <li>หัวหน้างาน: ${supervisorName}</li>
                                             <li>สถานะ: ${status}</li>
                                         </ul>
                                     `
@@ -809,10 +814,12 @@ app.put('/request-update/:id', async (req, res) => {
                         html: `
                             <p>คำร้องลาของคุณ${status === 'อนุมัติแล้ว' ? 'ผ่านการอนุมัติจากหัวหน้าแล้ว' : 'ไม่ผ่านการอนุมัติจากหัวหน้า'}</p>
                             <ul>
+                                <li>ชื่อพนักงาน: ${employeeName}</li>
                                 <li>ประเภทการลา: ${requestData.leaveType}</li>
                                 <li>วันที่เริ่มต้น: ${requestData.start_date} เวลา: ${requestData.start_time}</li>
                                 <li>วันที่สิ้นสุด: ${requestData.end_date} เวลา: ${requestData.end_time}</li>
                                 <li>เหตุผล: ${requestData.reason}</li>
+                                <li>หัวหน้างาน: ${supervisorName}</li>
                                 <li>สถานะ: ${status}</li>
                             </ul>
                         `
